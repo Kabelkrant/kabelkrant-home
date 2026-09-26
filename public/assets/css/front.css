@@ -1,0 +1,316 @@
+/*
+ * Startpagina: login en bookmarks.
+ *
+ * Indeling wordt gestuurd door attributen op <main class="page">:
+ *   data-logo-position="left|top"   logo links naast of gecentreerd boven de bookmarks
+ *   data-columns="1|2|3"             aantal bookmarkkolommen (.bookmark-column)
+ *
+ * Welke categorie in welke kolom staat, wordt in het beheer bepaald.
+ */
+
+.page {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--spacing-l);
+  justify-content: center;
+  margin: 0 auto;
+  padding: var(--spacing-l) var(--spacing-m) var(--spacing-m);
+  width: 20rem;
+}
+
+/* ---------- Logo ---------- */
+
+.brand {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: center;
+}
+
+.brand img { height: 4.5rem; width: auto; }
+
+#logo {
+  transition: transform 0.1s ease-out;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+#logo[data-animate] { cursor: pointer; }
+#logo.jump { animation: logo-jump 0.25s ease-out; }
+
+@keyframes logo-jump {
+  0%   { transform: translate(0, 0) rotate(0deg) scale(1); }
+  30%  { transform: translate(var(--jump-drift, 0%), var(--jump-height, -40%)) scale(1.05) rotate(var(--jump-rotate, -9deg)); }
+  100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #logo.jump { animation: none; }
+}
+
+/* ---------- Login ---------- */
+
+#login { width: 100%; }
+
+/* Op smalle schermen mag het loginveld de volle breedte (max. 26rem) gebruiken */
+.page--login { width: min(100%, 26rem); }
+
+#login .error {
+  color: #a3261d;
+  font-size: 0.875rem;
+  margin-bottom: var(--spacing-s);
+  text-align: center;
+}
+
+#login input[type="password"] {
+  background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%23525252' d='M400 188h-36v-82.2C364 47.4 315.5 0 256 0S148 47.4 148 105.8V188h-36c-33.1 0-60 26.9-60 60v204c0 33.1 26.9 60 60 60h288c33.1 0 60-26.9 60-60V248c0-33.1-26.9-60-60-60zm-212-82.2c0-36.3 30.5-65.8 68-65.8s68 29.5 68 65.8V188H188v-82.2zM420 452c0 11-9 20-20 20H112c-11 0-20-9-20-20V248c0-11 9-20 20-20h288c11 0 20 9 20 20v204zM256 286c-20.4 0-37 16.6-37 37 0 13 6.8 24.5 17 31.1V398c0 11 9 20 20 20s20-9 20-20v-43.9c10.2-6.6 17-18.1 17-31.1 0-20.4-16.6-37-37-37z'/%3E%3C/svg%3E") no-repeat right 1.25rem center / 1.5rem 1.5rem;
+  border: 0.125rem solid color-mix(in srgb, var(--color-text) 25%, transparent);
+  border-radius: 0.5rem;
+  color: var(--color-text);
+  line-height: 1.5;
+  outline: 0.25rem solid transparent;
+  padding: var(--spacing-m);
+  width: 100%;
+}
+
+#login input[type="password"]:hover {
+  border-color: color-mix(in srgb, var(--color-text) 50%, transparent);
+}
+
+#login input[type="password"]:focus {
+  background-color: rgb(255 255 255 / 0.1);
+  border-color: var(--color-accent);
+  outline-color: var(--accent-soft);
+}
+
+/* ---------- Bookmarks ---------- */
+
+.page--home {
+  justify-content: flex-start;
+  min-height: 100vh;
+  width: 100%;
+}
+
+#bookmarks {
+  align-self: stretch;
+  margin-top: var(--spacing-l);
+}
+
+.bookmark-column > details,
+.bookmark-column > a {
+  margin-bottom: var(--spacing-m);
+}
+
+/* Geen marge onder het laatste item: die zou als lege ruimte meetellen
+   en de bookmarks bij verticaal centreren te hoog zetten. */
+.bookmark-column > :last-child,
+#bookmarks li:last-child {
+  margin-bottom: 0;
+}
+
+/* Meerdere kolommen: compacte kolommen naast elkaar, zolang ze passen;
+   is het scherm te smal, dan schuiven ze vanzelf onder elkaar. */
+.page--home {
+  --column-width: 15rem;
+  --column-gap: var(--spacing-l);
+  /* Expliciete breedte van alle kolommen samen. Niet aan de browser overlaten:
+     Firefox en Chrome berekenen de breedte van een wrappende flexbox verschillend. */
+  --columns-width: calc(var(--columns, 1) * var(--column-width) + (var(--columns, 1) - 1) * var(--column-gap));
+}
+
+.page--home:not([data-columns="1"]) #bookmarks {
+  column-gap: var(--column-gap);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.page--home:not([data-columns="1"]) .bookmark-column {
+  flex: 0 0 var(--column-width);
+  max-width: 100%;
+}
+
+#bookmarks summary {
+  align-items: center;
+  border-radius: 0.25rem;
+  color: var(--link-muted);
+  cursor: pointer;
+  display: flex;
+  list-style: none;
+  padding: var(--spacing-s);
+}
+
+#bookmarks summary::-webkit-details-marker { display: none; }
+#bookmarks summary::marker { content: ""; }
+
+#bookmarks summary::before {
+  content: "▸";
+  display: inline-block;
+  flex: 0 0 1rem;
+  margin-right: var(--spacing-s);
+  text-align: center;
+  transition: transform 0.15s ease-in-out;
+}
+
+#bookmarks details[open] > summary::before { transform: rotate(90deg); }
+
+#bookmarks ul {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  /* icoon van een item start waar de categorietekst begint */
+  padding: 0 0 0 3.2rem;
+}
+
+#bookmarks li {
+  line-height: 1;
+  margin-bottom: var(--spacing-xs);
+}
+
+#bookmarks img {
+  flex: 0 0 auto;
+  height: 1rem;
+  margin-right: var(--spacing-s);
+  width: auto;
+}
+
+#bookmarks a {
+  align-items: center;
+  border-radius: 0.25rem;
+  color: var(--link-muted);
+  display: flex;
+  padding: var(--spacing-s);
+  text-decoration: none;
+}
+
+/* Losse links in de root hebben geen pijltje; extra inspringing lijnt het icoon uit */
+.bookmark-column > a { padding-left: calc(var(--spacing-s) + 1rem + var(--spacing-s)); }
+
+#bookmarks summary:hover,
+#bookmarks summary:focus-visible,
+#bookmarks a:hover,
+#bookmarks a:focus-visible {
+  background-color: var(--hover-background);
+  color: var(--color-link-hover);
+  outline: none;
+}
+
+/* ---------- Afmelden / instellingen (rechtsonder) ---------- */
+
+.corner-links {
+  bottom: var(--spacing-m);
+  display: flex;
+  /* iconen staan dichter bij elkaar dan hun padding; die houdt het klikvlak groot */
+  gap: 0;
+  position: fixed;
+  right: var(--spacing-m);
+}
+
+/* Padding rondom het icoon: meer lucht en een groter klikvlak */
+.corner-link {
+  color: color-mix(in srgb, var(--color-text) 25%, transparent);
+  display: block;
+  padding: 0.5rem;
+  transition: color 0.15s;
+}
+
+.corner-link + .corner-link { margin-left: -0.25rem; }
+
+.corner-link--logout:hover,
+.corner-link--logout:focus-visible { color: #e8741c; }
+
+.corner-link--admin:hover,
+.corner-link--admin:focus-visible { color: #2477d4; }
+
+.corner-link:focus-visible { outline: none; }
+
+/* ---------- Breed scherm ---------- */
+
+@media screen and (min-width: 48em) {
+  .brand img { height: 7.5rem; }
+
+  .page--login {
+    padding: 0;
+    width: 50rem;
+  }
+
+  .page--login #login { max-width: 26rem; }
+
+  /* Logo boven: gecentreerd, bookmarks eronder */
+  /* Logo en bookmarks samen als één blok, verticaal gecentreerd op het scherm.
+     Past het niet, dan groeit de pagina mee met --spacing-xl ruimte boven en onder. */
+  .page--home[data-logo-position="top"] {
+    gap: 3rem;
+    justify-content: center;
+    padding: var(--spacing-xl) var(--spacing-l);
+  }
+
+  .page--home[data-logo-position="top"] #bookmarks {
+    align-self: center;
+    margin-top: 0;
+    width: min(100%, var(--columns-width));
+  }
+
+  .page--home[data-logo-position="top"][data-columns="1"] #bookmarks {
+    width: min(100%, 20rem);
+  }
+
+  /* Logo links: blijft staan terwijl de pagina scrolt */
+  .page--home[data-logo-position="left"] {
+    align-items: stretch;
+    flex-direction: row;
+    padding: 0;
+  }
+
+  .page--home[data-logo-position="left"] .brand {
+    height: 100vh;
+    position: sticky;
+    top: 0;
+  }
+
+  /* Minstens één schermhoogte, bookmarks verticaal gecentreerd (op de hoogte van
+     het logo). Passen ze, dan valt er niets te scrollen; zijn ze hoger, dan groeit
+     het blok mee en blijft er boven en onder --spacing-xl ruimte. */
+  .page--home[data-logo-position="left"] #bookmarks {
+    align-content: center;
+    margin-top: 0;
+    min-height: 100vh;
+    padding-block: var(--spacing-xl);
+  }
+
+  .page--home[data-logo-position="left"][data-columns="1"] #bookmarks {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  /* Eén kolom: logo en bookmarks elk een helft van een blok van 2/3 schermbreedte */
+  .page--home[data-logo-position="left"][data-columns="1"] {
+    max-width: 66.6667vw;
+  }
+
+  .page--home[data-logo-position="left"][data-columns="1"] .brand,
+  .page--home[data-logo-position="left"][data-columns="1"] #bookmarks {
+    flex: 1 1 0;
+  }
+
+  /* Meerdere kolommen: blok zo breed als de inhoud, gecentreerd op de pagina */
+  .page--home[data-logo-position="left"]:not([data-columns="1"]) {
+    /* ruimte tussen logo en bookmarks groeit mee met de schermbreedte */
+    column-gap: clamp(5rem, 8vw, 10rem);
+    justify-content: center;
+  }
+
+  .page--home[data-logo-position="left"]:not([data-columns="1"]) .brand {
+    flex: 0 0 auto;
+  }
+
+  .page--home[data-logo-position="left"]:not([data-columns="1"]) #bookmarks {
+    flex: 0 1 var(--columns-width);
+    justify-content: flex-start;
+  }
+}

@@ -1,0 +1,11 @@
+# Door het beheer geüploade huisstijlbestanden en gegenereerde achtergronden
+# (logo-xxxxxxxx.png, favicon-…, background-….svg); de standaardbestanden blijven in git.
+/public/branding/logo-????????.*
+/public/branding/favicon-????????.*
+/public/branding/background-????????.*
+
+# Tijdelijke en systeembestanden
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db

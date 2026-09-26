@@ -1,0 +1,104 @@
+/*
+ * Gedeelde basis voor de startpagina en het beheerscherm:
+ * reset, lettertype, spacing en afgeleide themakleuren.
+ * De themakleuren zelf (--color-*) worden per pagina vanuit settings.json gezet.
+ */
+
+@font-face {
+  font-family: "Inter";
+  src: url("../fonts/inter/inter-latin-400-normal.woff2") format("woff2"),
+       url("../fonts/inter/inter-latin-400-normal.woff") format("woff");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter";
+  src: url("../fonts/inter/inter-latin-500-normal.woff2") format("woff2"),
+       url("../fonts/inter/inter-latin-500-normal.woff") format("woff");
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter";
+  src: url("../fonts/inter/inter-latin-600-normal.woff2") format("woff2"),
+       url("../fonts/inter/inter-latin-600-normal.woff") format("woff");
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter";
+  src: url("../fonts/inter/inter-latin-700-normal.woff2") format("woff2"),
+       url("../fonts/inter/inter-latin-700-normal.woff") format("woff");
+  font-weight: 700;
+  font-display: swap;
+}
+
+:root {
+  /* Standaardwaarden; worden overschreven door de inline <style> uit settings.json */
+  --color-background: #c4e2d8;
+  --color-text: #1f1f1f;
+  --color-link: #1f1f1f;
+  --color-link-hover: #1f1f1f;
+  --color-accent: #1f7755;
+  --background-image: none;
+
+  /* Afgeleid: tekst en links iets gedempt, bij hover de volle kleur */
+  --text-muted: color-mix(in srgb, var(--color-text) 75%, transparent);
+  --link-muted: color-mix(in srgb, var(--color-link) 75%, transparent);
+  --hover-background: color-mix(in srgb, var(--color-link-hover) 5%, transparent);
+  --accent-soft: color-mix(in srgb, var(--color-accent) 25%, transparent);
+
+  --font-sans-serif: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-size-body: 16px;
+  --font-weight: 500;
+
+  --spacing-xs: 0.25rem;
+  --spacing-s: 0.5rem;
+  --spacing-m: 1rem;
+  --spacing-l: 2rem;
+  --spacing-xl: 4rem;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html { interpolate-size: allow-keywords; }
+}
+
+html {
+  scrollbar-color: color-mix(in srgb, var(--color-accent) 50%, transparent) transparent;
+}
+
+body {
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  background-color: var(--color-background);
+  background-image: var(--background-image);
+  background-attachment: fixed;
+  background-position: center;
+  background-size: cover;
+  color: var(--text-muted);
+  font-family: var(--font-sans-serif);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+img, picture, video, canvas, svg { display: block; max-width: 100%; }
+input, button, textarea, select { font: inherit; }
+p, h1, h2, h3, h4, h5, h6 { overflow-wrap: break-word; }
+p { text-wrap: pretty; }
+h1, h2, h3, h4, h5, h6 { text-wrap: balance; }
+
+/* Alleen zichtbaar voor schermlezers */
+.sr-only {
+  height: 1px;
+  left: -10000px;
+  overflow: hidden;
+  position: absolute;
+  top: auto;
+  width: 1px;
+}
