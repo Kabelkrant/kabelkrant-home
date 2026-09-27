@@ -13,7 +13,9 @@ use ZipArchive;
  *
  * Is de installatie een git-clone, dan via `git pull --ff-only`; anders wordt de
  * zip van GitHub gedownload en over de projectmap uitgepakt. Bestanden die niet in
- * de repository staan (uploads, ../.env, ../data) blijven altijd ongemoeid.
+ * de repository staan (uploads, ../.env, ../data) blijven altijd ongemoeid. Bij de
+ * zip-methode geldt dat ook voor bestaande iconen in public/icons/: die worden nooit
+ * overschreven of verwijderd; alleen nieuwe iconen uit de repository komen erbij.
  */
 final readonly class Updater
 {
@@ -139,10 +141,20 @@ final readonly class Updater
             }
 
             $previous = $this->store->read(self::DOCUMENT, [])['files'] ?? [];
-            $removed = array_values(array_diff(is_array($previous) ? $previous : [], array_keys($files)));
-            $backup = $this->backup([...array_keys($files), ...$removed]);
+            $previous = is_array($previous) ? $previous : [];
+            $known = array_flip($previous);
 
-            foreach ($files as $path => $index) {
+            // Iconen zijn gebruikersdata: alleen nieuwe iconen uit de repository toevoegen,
+            // en alleen als er lokaal nog niets met die naam staat; nooit overschrijven of verwijderen.
+            $install = array_filter($files, static fn(string $path): bool => !self::isIcon($path)
+                || (!isset($known[$path]) && !file_exists(APP_ROOT . '/' . $path)), ARRAY_FILTER_USE_KEY);
+            $removed = array_values(array_filter(
+                array_diff($previous, array_keys($files)),
+                static fn(string $path): bool => !self::isIcon($path),
+            ));
+            $backup = $this->backup([...array_keys($install), ...$removed]);
+
+            foreach ($install as $path => $index) {
                 $this->writeFile($path, (string) $zip->getFromIndex($index));
             }
             $zip->close();
@@ -162,7 +174,11 @@ final readonly class Updater
             'files'        => array_keys($files),
         ]);
 
-        $log = sprintf("%d bestanden bijgewerkt, %d verwijderd.\nBackup van de vorige versie: %s", count($files), count($removed), $backup ? basename($backup) : 'geen');
+        $newIcons = count(array_filter(array_keys($install), self::isIcon(...)));
+        $log = sprintf(
+            "%d bestanden bijgewerkt, %d nieuwe iconen toegevoegd, %d verwijderd.\nBestaande iconen zijn niet aangeraakt.\nBackup van de vorige versie: %s",
+            count($install) - $newIcons, $newIcons, count($removed), $backup ? basename($backup) : 'geen',
+        );
         return ['mode' => 'zip', 'sha' => $sha, 'log' => $log];
     }
 
@@ -185,6 +201,11 @@ final readonly class Updater
             $files[$path] = $i;
         }
         return $files;
+    }
+
+    private static function isIcon(string $path): bool
+    {
+        return str_starts_with($path, 'public/icons/');
     }
 
     private static function isSafePath(string $path): bool
