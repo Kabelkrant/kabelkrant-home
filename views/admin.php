@@ -30,6 +30,7 @@ use App\View;
     <button type="button" role="tab" data-tab="icons">Icons</button>
     <button type="button" role="tab" data-tab="design">Vormgeving</button>
     <button type="button" role="tab" data-tab="settings">Instellingen</button>
+    <button type="button" role="tab" data-tab="version">Versie</button>
   </nav>
 
   <!-- Bookmarks -->
@@ -212,7 +213,10 @@ use App\View;
         <a class="back" href="./" target="_blank">Bekijk site ↗</a>
       </div>
     </div>
+  </section>
 
+  <!-- Versie -->
+  <section id="tab-version" class="tab-panel" role="tabpanel" hidden>
     <div class="design-form update-panel">
       <fieldset>
         <legend>Software bijwerken</legend>

@@ -1,7 +1,7 @@
 'use strict';
 
 /*
- * Beheerscherm: drie tabbladen (bookmarks, icons, vormgeving) op één pagina.
+ * Beheerscherm: tabbladen (bookmarks, icons, vormgeving, instellingen, versie) op één pagina.
  * Alle data komt binnen via <script id="boot"> en wordt via ./?api=… opgeslagen.
  */
 
@@ -53,7 +53,7 @@ function setStatus(text, { error = false, autoHide = false } = {}) {
 
 /* ---------- Tabs ---------- */
 
-const TABS = ['bookmarks', 'icons', 'design', 'settings'];
+const TABS = ['bookmarks', 'icons', 'design', 'settings', 'version'];
 
 function showTab(name) {
     if (!TABS.includes(name)) name = TABS[0];
@@ -61,7 +61,7 @@ function showTab(name) {
     TABS.forEach(tab => { $('#tab-' + tab).hidden = tab !== name; });
     if (name === 'icons') renderIconManager();
     if (name === 'design') renderBackgroundMode();
-    if (name === 'settings' && !updateChecked) checkUpdate();
+    if (name === 'version' && !updateChecked) checkUpdate();
 }
 
 $$('.tabs [data-tab]').forEach(btn => btn.addEventListener('click', () => {
