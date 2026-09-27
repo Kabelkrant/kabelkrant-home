@@ -46,8 +46,7 @@ final readonly class Settings
     public function all(): array
     {
         $stored = $this->store->read(self::DOCUMENT, []);
-        $stored = is_array($stored) ? self::migrate($stored) : [];
-        return array_replace_recursive(self::DEFAULTS, $stored);
+        return array_replace_recursive(self::DEFAULTS, is_array($stored) ? $stored : []);
     }
 
     /** @throws InvalidArgumentException bij ongeldige data */
@@ -58,38 +57,6 @@ final readonly class Settings
         $settings = self::validate($input, $publicDir);
         $this->store->write(self::DOCUMENT, $settings);
         return $settings;
-    }
-
-    /**
-     * Zet instellingen uit oudere versies om. Tot september 2026 werd een patroon als
-     * bestand in branding/ opgeslagen (background_pattern.file); dat bestand wordt bij
-     * de volgende keer opslaan vanzelf opgeruimd.
-     */
-    private static function migrate(array $s): array
-    {
-        if (!isset($s['background_mode'])) {
-            $file = $s['background_pattern']['file'] ?? null;
-            $s['background_mode'] = match (true) {
-                $file !== null && $file === ($s['background_image'] ?? null) => 'pattern',
-                ($s['background_image'] ?? null) === ''                     => 'color',
-                default                                                     => 'image',
-            };
-            if ($s['background_mode'] === 'pattern') {
-                $s['background_image'] = self::DEFAULTS['background_image'];
-            }
-        }
-        if (isset($s['background_pattern'])) {
-            try {
-                $s['background_pattern'] = Backgrounds::validate($s['background_pattern']);
-            } catch (InvalidArgumentException) {
-                $s['background_pattern'] = null; // patroonsoort bestaat niet meer
-            }
-        }
-        if ($s['background_mode'] === 'pattern' && empty($s['background_pattern'])) {
-            $s['background_mode'] = 'image';
-            $s['background_image'] = self::DEFAULTS['background_image'];
-        }
-        return $s;
     }
 
     public static function validate(array $in, string $publicDir): array

@@ -7,6 +7,7 @@ declare(strict_types=1);
  *   /                 startpagina (login of bookmarks)
  *   /?p=admin         beheer: bookmarks, icons en vormgeving
  *   /?p=logout        uitloggen
+ *   /?bg=<hash>       patroon-achtergrond als SVG (uit de instellingen)
  *   /?api=…           JSON-API voor het beheerscherm
  */
 

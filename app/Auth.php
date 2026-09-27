@@ -125,7 +125,7 @@ final class Auth
         return $this->hash;
     }
 
-    /** Verandert zodra het wachtwoord verandert (compatibel met de oude cookie zolang .env geldt). */
+    /** Verandert zodra het wachtwoord verandert; zonder eigen wachtwoord geldt dat uit .env. */
     private function fingerprint(): string
     {
         return hash_hmac('sha256', $this->storedHash() ?? (string) $this->config->password, $this->config->secretKey);

@@ -43,8 +43,7 @@ final class App
             return;
         }
 
-        // "?logout" is het adres uit de vorige versie (staat mogelijk nog in bookmarks)
-        match (isset($_GET['logout']) ? 'logout' : ($_GET['p'] ?? 'home')) {
+        match ($_GET['p'] ?? 'home') {
             'logout' => $this->logout(),
             'admin'  => $this->admin(),
             default  => $this->home(),

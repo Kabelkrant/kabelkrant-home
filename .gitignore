@@ -1,5 +1,5 @@
-# Door het beheer geüploade huisstijlbestanden en gegenereerde achtergronden
-# (logo-xxxxxxxx.png, favicon-…, background-….svg); de standaardbestanden blijven in git.
+# Door het beheer geüploade huisstijlbestanden (logo-xxxxxxxx.png, favicon-…,
+# background-…); de standaardbestanden blijven in git.
 /public/branding/logo-????????.*
 /public/branding/favicon-????????.*
 /public/branding/background-????????.*
