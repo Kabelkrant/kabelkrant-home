@@ -475,8 +475,8 @@ function renderIconManager() {
             iconImg(icon.path),
             el('span', { className: 'name', textContent: icon.file }),
             el('span', {
-                className: 'usage' + (users.length ? '' : ' unused'),
-                textContent: users.length ? `${users.length}× gebruikt` : 'niet gebruikt',
+                className: 'usage',
+                textContent: users.length ? `${users.length}× gebruikt` : '',
             }),
             iconButton('delete', `${icon.file} verwijderen`, () => deleteIcon(icon, users), 'delete danger'),
         ]);

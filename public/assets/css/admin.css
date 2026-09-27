@@ -253,8 +253,7 @@ li.node.disabled > .node-row { opacity: 0.6; }
 button.icon-item:hover, .icon-item:hover { background: var(--fill-strong); border-color: var(--line); }
 .icon-item img { height: 2rem; object-fit: contain; width: 2rem; }
 .icon-item .name { font-size: 0.65rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
-.icon-item .usage { color: var(--ink-soft); font-size: 0.6rem; }
-.icon-item .usage.unused { font-style: italic; }
+.icon-item .usage { color: var(--ink-soft); font-size: 0.6rem; min-height: 1lh; }
 .icon-item .delete {
   background: #fff;
   border-radius: 50%;
