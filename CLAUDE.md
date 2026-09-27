@@ -12,3 +12,7 @@ Uitzonderingen en randgevallen:
 - Is er geen remote ingesteld? Commit lokaal en meld dat pushen niet kon.
 - Mislukt de push (bijv. remote loopt voor)? Niet forceren; meld het en stel een oplossing voor.
 - Commit nooit geheimen (wachtwoorden, API-keys, `.env`-bestanden). Twijfel je, vraag het eerst.
+
+## Iconen
+
+Nieuwe of gewijzigde iconen in `public/icons/` (bijv. via het beheer geüpload) horen in de repository: neem ze altijd mee bij het committen, zonder het eerst te vragen. Commit ze bij voorkeur apart van codewijzigingen (bijv. "Iconen toegevoegd: x.svg, y.svg").
