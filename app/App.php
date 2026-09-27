@@ -29,6 +29,10 @@ final class App
 
     public function run(): void
     {
+        if (isset($_GET['bg'])) {
+            $this->background((string) $_GET['bg']);
+        }
+
         // Pagina's zijn persoonlijk (sessie): nooit laten cachen door Varnish/browser.
         header('Cache-Control: no-store, private');
         header('X-Content-Type-Options: nosniff');
@@ -45,6 +49,28 @@ final class App
             'admin'  => $this->admin(),
             default  => $this->home(),
         };
+    }
+
+    /**
+     * Levert de patroon-achtergrond als SVG, opgebouwd uit de instellingen. De hash in
+     * de URL verandert met elke instelling, dus bij een juiste hash mag er onbeperkt
+     * gecachet worden. Openbaar, net als de achtergrond op het inlogscherm.
+     */
+    private function background(string $hash): never
+    {
+        $settings = $this->settings->all();
+        if ($settings['background_mode'] !== 'pattern') {
+            http_response_code(404);
+            exit;
+        }
+        $pattern = $settings['background_pattern'];
+        $current = $hash === Backgrounds::hash($pattern);
+        header('Content-Type: image/svg+xml; charset=utf-8');
+        header('Cache-Control: ' . ($current ? 'public, max-age=31536000, immutable' : 'no-cache'));
+        header('X-Content-Type-Options: nosniff');
+        header("Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'");
+        echo Backgrounds::svg($pattern);
+        exit;
     }
 
     private function home(): void
@@ -79,6 +105,7 @@ final class App
                 'icons'    => $this->media->listIcons(),
                 'settings' => $this->settings->all(),
                 'defaults' => Settings::DEFAULTS,
+                'backgrounds' => Backgrounds::definitions(),
                 'csrf'     => $this->auth->csrfToken(),
                 'limits'   => ['icon' => Media::MAX_ICON_BYTES, 'branding' => Media::MAX_BRANDING_BYTES, 'password' => Auth::MIN_LENGTH],
             ],
@@ -114,7 +141,6 @@ final class App
                 ['POST', 'branding.upload'] => ['path' => $this->media->uploadBranding($_FILES['file'] ?? [], (string) ($_POST['slot'] ?? ''))],
                 ['POST', 'settings.save']  => $this->saveSettings(),
                 ['POST', 'password.change'] => $this->changePassword(),
-                ['POST', 'background.save'] => $this->saveBackground(),
                 ['GET', 'update.status']   => $this->updater->status(),
                 ['POST', 'update.run']     => $this->updater->run(),
                 default => $this->json(['ok' => false, 'error' => 'Onbekende actie.'], 404),
@@ -160,16 +186,6 @@ final class App
     private function saveSettings(): array
     {
         $settings = $this->settings->save($this->jsonBody(), $this->config->publicDir);
-        $this->media->pruneBranding(Settings::referencedAssets($settings));
-        return ['settings' => $settings];
-    }
-
-    private function saveBackground(): array
-    {
-        $body = $this->jsonBody();
-        $pattern = Settings::validatePattern($body);
-        $file = $this->media->saveGeneratedBackground((string) ($body['svg'] ?? ''));
-        $settings = $this->settings->saveBackgroundPattern($pattern, $file, strtolower((string) ($body['base'] ?? '')));
         $this->media->pruneBranding(Settings::referencedAssets($settings));
         return ['settings' => $settings];
     }

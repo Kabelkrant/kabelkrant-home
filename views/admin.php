@@ -111,7 +111,7 @@ use App\View;
         Patronen gebaseerd op <a href="https://www.svgbackgrounds.com/set/free-svg-backgrounds-and-patterns/" target="_blank" rel="noopener">Free SVG Backgrounds and Patterns</a>
         door <a href="https://www.youtube.com/@MattVisiwig" target="_blank" rel="noopener">Matt Visiwig</a>,
         <a href="https://www.svgbackgrounds.com/" target="_blank" rel="noopener">SVGBackgrounds.com</a>.
-        De naamsvermelding staat ook in elk opgeslagen achtergrondbestand.
+        De naamsvermelding staat ook als opmerking in elke gegenereerde achtergrond.
       </p>
     </fieldset>
 

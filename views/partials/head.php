@@ -1,6 +1,7 @@
 <?php
 defined('APP_ROOT') || exit;
 
+use App\Settings;
 use App\View;
 
 /** @var array $settings  @var string $title  @var list<string> $stylesheets */
@@ -22,6 +23,6 @@ $c = $settings['colors'];
       --color-link: <?= $c['link'] ?>;
       --color-link-hover: <?= $c['link_hover'] ?>;
       --color-accent: <?= $c['accent'] ?>;
-      --background-image: <?= $settings['background_image'] !== '' ? 'url("' . View::asset($settings['background_image']) . '")' : 'none' ?>;
+      --background-image: <?= Settings::backgroundCss($settings) ?>;
     }
   </style>

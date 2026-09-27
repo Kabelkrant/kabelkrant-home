@@ -20,9 +20,10 @@ final readonly class Settings
         'name'             => 'Kabelkrant Home',
         'logo'             => 'branding/dino.svg',
         'favicon'          => '',            // leeg = logo gebruiken
-        'background_image' => 'branding/background-waves.svg', // leeg = alleen kleur
+        'background_mode'  => 'image',       // image | pattern | color
+        'background_image' => 'branding/background-waves.svg',
+        'background_pattern' => null,        // {type, params} uit de achtergrond-editor; SVG via /?bg=
         'logo_animation'   => false,         // springen + geluid bij klikken op het logo
-        'background_pattern' => null,        // laatste instellingen van de achtergrond-editor
         'colors' => [
             'background' => '#c4e2d8',
             'text'       => '#1f1f1f',
@@ -37,9 +38,7 @@ final readonly class Settings
     ];
 
     public const array LOGO_POSITIONS = ['left', 'top'];
-    public const array PATTERN_TYPES = [
-        'liquid-cheese', 'bullseye-gradient', 'hollowed-boxes', 'quantum-gradient', 'rose-petals', 'wintery-sunburst',
-    ];
+    public const array BACKGROUND_MODES = ['image', 'pattern', 'color'];
     public const array COLUMNS = [1, 2, 3];
 
     public function __construct(private JsonStore $store) {}
@@ -47,58 +46,50 @@ final readonly class Settings
     public function all(): array
     {
         $stored = $this->store->read(self::DOCUMENT, []);
-        return array_replace_recursive(self::DEFAULTS, is_array($stored) ? $stored : []);
+        $stored = is_array($stored) ? self::migrate($stored) : [];
+        return array_replace_recursive(self::DEFAULTS, $stored);
     }
 
     /** @throws InvalidArgumentException bij ongeldige data */
     public function save(array $input, string $publicDir): array
     {
+        // Zonder nieuw patroon blijven de laatste instellingen van de achtergrond-editor behouden.
+        $input['background_pattern'] ??= $this->all()['background_pattern'];
         $settings = self::validate($input, $publicDir);
-        // De achtergrond-editor heeft een eigen opslagactie; die instellingen blijven behouden.
-        $settings['background_pattern'] = $this->all()['background_pattern'];
         $this->store->write(self::DOCUMENT, $settings);
         return $settings;
     }
 
-    /** Maakt een gegenereerde patroon-achtergrond actief en onthoudt de editor-instellingen. */
-    public function saveBackgroundPattern(array $pattern, string $file, string $baseColor): array
+    /**
+     * Zet instellingen uit oudere versies om. Tot september 2026 werd een patroon als
+     * bestand in branding/ opgeslagen (background_pattern.file); dat bestand wordt bij
+     * de volgende keer opslaan vanzelf opgeruimd.
+     */
+    private static function migrate(array $s): array
     {
-        if (!preg_match('/^#[0-9a-f]{6}$/', $baseColor)) {
-            throw new InvalidArgumentException('Ongeldige basiskleur.');
-        }
-        $settings = $this->all();
-        $settings['background_image'] = $file;
-        $settings['background_pattern'] = self::validatePattern($pattern) + ['file' => $file];
-        $settings['colors']['background'] = $baseColor;
-        $this->store->write(self::DOCUMENT, $settings);
-        return $settings;
-    }
-
-    /** @return array{type: string, params: array<string, string|int|float|bool>} */
-    public static function validatePattern(array $pattern): array
-    {
-        $type = (string) ($pattern['type'] ?? '');
-        if (!in_array($type, self::PATTERN_TYPES, true)) {
-            throw new InvalidArgumentException('Onbekend achtergrondpatroon.');
-        }
-        $params = is_array($pattern['params'] ?? null) ? $pattern['params'] : [];
-        if (count($params) > 16) {
-            throw new InvalidArgumentException('Te veel parameters.');
-        }
-        $clean = [];
-        foreach ($params as $key => $value) {
-            $valid = is_string($key) && preg_match('/^[a-z_]{1,20}$/', $key) && match (true) {
-                is_bool($value)                    => true,
-                is_int($value), is_float($value)   => abs($value) <= 10000,
-                is_string($value)                  => preg_match('/^#[0-9a-f]{6}$/', $value) === 1,
-                default                            => false,
+        if (!isset($s['background_mode'])) {
+            $file = $s['background_pattern']['file'] ?? null;
+            $s['background_mode'] = match (true) {
+                $file !== null && $file === ($s['background_image'] ?? null) => 'pattern',
+                ($s['background_image'] ?? null) === ''                     => 'color',
+                default                                                     => 'image',
             };
-            if (!$valid) {
-                throw new InvalidArgumentException('Ongeldige parameter voor het patroon.');
+            if ($s['background_mode'] === 'pattern') {
+                $s['background_image'] = self::DEFAULTS['background_image'];
             }
-            $clean[$key] = $value;
         }
-        return ['type' => $type, 'params' => $clean];
+        if (isset($s['background_pattern'])) {
+            try {
+                $s['background_pattern'] = Backgrounds::validate($s['background_pattern']);
+            } catch (InvalidArgumentException) {
+                $s['background_pattern'] = null; // patroonsoort bestaat niet meer
+            }
+        }
+        if ($s['background_mode'] === 'pattern' && empty($s['background_pattern'])) {
+            $s['background_mode'] = 'image';
+            $s['background_image'] = self::DEFAULTS['background_image'];
+        }
+        return $s;
     }
 
     public static function validate(array $in, string $publicDir): array
@@ -133,11 +124,25 @@ final readonly class Settings
             throw new InvalidArgumentException('Een logo is verplicht.');
         }
 
+        $mode = (string) ($in['background_mode'] ?? 'image');
+        if (!in_array($mode, self::BACKGROUND_MODES, true)) {
+            throw new InvalidArgumentException('Ongeldige soort achtergrond.');
+        }
+        $pattern = isset($in['background_pattern']) ? Backgrounds::validate($in['background_pattern']) : null;
+        if ($mode === 'pattern') {
+            if ($pattern === null) {
+                throw new InvalidArgumentException('Kies een patroon.');
+            }
+            $colors['background'] = Backgrounds::base($pattern);
+        }
+
         return [
             'name'             => $name,
             'logo'             => $logo,
             'favicon'          => self::validateAsset((string) ($in['favicon'] ?? ''), $publicDir, 'favicon'),
+            'background_mode'  => $mode,
             'background_image' => self::validateAsset((string) ($in['background_image'] ?? ''), $publicDir, 'achtergrond'),
+            'background_pattern' => $pattern,
             'logo_animation'   => (bool) ($in['logo_animation'] ?? false),
             'colors'           => $colors,
             'layout'           => ['columns' => $columns, 'logo_position' => $position],
@@ -155,6 +160,18 @@ final readonly class Settings
             throw new InvalidArgumentException("Bestand voor {$what} niet gevonden.");
         }
         return $path;
+    }
+
+    /** CSS-waarde voor background-image volgens de gekozen soort achtergrond. */
+    public static function backgroundCss(array $settings): string
+    {
+        return match (true) {
+            $settings['background_mode'] === 'pattern'
+                => 'url("' . View::e(View::base() . '?bg=' . Backgrounds::hash($settings['background_pattern'])) . '")',
+            $settings['background_mode'] === 'image' && $settings['background_image'] !== ''
+                => 'url("' . View::asset($settings['background_image']) . '")',
+            default => 'none',
+        };
     }
 
     /** Alle paden die door deze instellingen worden gebruikt. */

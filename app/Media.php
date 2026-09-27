@@ -88,21 +88,6 @@ final readonly class Media
         return "branding/{$file}";
     }
 
-    /** Slaat een in de achtergrond-editor gegenereerde SVG op (opgeschoond, net als uploads). */
-    public function saveGeneratedBackground(string $svg): string
-    {
-        if ($svg === '' || strlen($svg) > 256 * 1024) {
-            throw new InvalidArgumentException('Ongeldige achtergrond.');
-        }
-        $file = sprintf('background-%s.svg', bin2hex(random_bytes(4)));
-        $target = $this->config->brandingDir() . '/' . $file;
-        if (file_put_contents($target, self::sanitizeSvg($svg)) === false) {
-            throw new InvalidArgumentException('Opslaan mislukt (schrijfrechten?).');
-        }
-        @chmod($target, 0664);
-        return "branding/{$file}";
-    }
-
     /** Verwijdert eerder geüploade huisstijlbestanden die niet meer in gebruik zijn. */
     public function pruneBranding(array $inUse): void
     {

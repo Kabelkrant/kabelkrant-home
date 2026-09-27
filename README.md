@@ -30,6 +30,6 @@ Op het tabblad Versie staat het buildnummer: het aantal commits op GitHub, dus o
 
 ## Naamsvermelding
 
-De achtergrondpatronen in `public/assets/js/backgrounds.js` zijn gebaseerd op
+De achtergrondpatronen (`app/backgrounds.json`, `app/Backgrounds.php` en voor de preview `public/assets/js/backgrounds.js`) zijn gebaseerd op
 [Free SVG Backgrounds and Patterns](https://www.svgbackgrounds.com/set/free-svg-backgrounds-and-patterns/)
 door Matt Visiwig, [SVGBackgrounds.com](https://www.svgbackgrounds.com/).

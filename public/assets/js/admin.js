@@ -609,7 +609,7 @@ function fillDesignForm() {
     }
     designForm.elements['layout.columns'].value = String(draft.layout.columns);
     designForm.elements['layout.logo_position'].value = draft.layout.logo_position;
-    designForm.elements.background_mode.value = detectBackgroundMode(settings);
+    designForm.elements.background_mode.value = settings.background_mode;
     $$('.asset-field').forEach(renderAssetField);
     renderBackgroundMode();
     applyThemePreview();
@@ -638,7 +638,7 @@ function applyThemePreview() {
     for (const key of Object.keys(draft.colors)) {
         root.setProperty('--color-' + key.replace('_', '-'), designForm.elements['colors.' + key].value);
     }
-    root.setProperty('--background-image', backgroundImageCss(1));
+    root.setProperty('--background-image', backgroundImageCss());
 }
 
 $$('.asset-field').forEach((field) => {
@@ -695,6 +695,7 @@ designForm.addEventListener('submit', async (e) => {
         logo_animation: f.logo_animation.checked,
         logo: draft.logo,
         favicon: draft.favicon,
+        background_mode: backgroundMode(),
         background_image: draft.background_image,
         colors: Object.fromEntries(Object.keys(defaults.colors).map(key => [key, f['colors.' + key].value])),
         layout: {
@@ -704,26 +705,16 @@ designForm.addEventListener('submit', async (e) => {
     };
 
     setStatus('Opslaan…');
+    const mode = payload.background_mode;
+    if (mode === 'image' && !payload.background_image) {
+        payload.background_image = defaults.background_image;
+    } else if (mode === 'pattern') {
+        // Alleen de instellingen; de server bouwt de SVG en bepaalt de basiskleur
+        payload.background_pattern = { type: bgType, params: bgParams[bgType] };
+    }
     try {
-        const mode = backgroundMode();
-        if (mode === 'color') {
-            payload.background_image = '';
-        } else if (mode === 'image' && !payload.background_image) {
-            payload.background_image = defaults.background_image;
-        } else if (mode === 'pattern') {
-            if (!patternIsActive()) {
-                // Patroon genereren en opslaan; dat levert het bestand en de basiskleur
-                const type = BG.find(bgType);
-                const params = bgParams[bgType];
-                settings = (await api('background.save', {
-                    json: { type: bgType, params, svg: type.svg(params), base: type.base(params) },
-                })).settings;
-                bgDirty.delete(bgType);
-            }
-            payload.background_image = settings.background_image;
-            payload.colors.background = settings.colors.background;
-        }
         settings = (await api('settings.save', { json: payload })).settings;
+        if (mode === 'pattern') bgDirty.delete(bgType);
         fillDesignForm();
         columns = splitColumns();
         renderTree();
@@ -815,7 +806,7 @@ window.addEventListener('beforeunload', (e) => {
  * Vormgeving: achtergrond (eigen afbeelding, patroon of solide kleur)
  * ===================================================================== */
 
-const BG = window.Backgrounds;
+const BG = window.Backgrounds(boot.backgrounds);
 // Per patroon de huidige parameters, zodat wisselen tussen patronen geen wijzigingen weggooit.
 const bgParams = Object.fromEntries(BG.types.map(t => [t.id, { ...t.defaults }]));
 let bgType = 'liquid-cheese';
@@ -828,26 +819,19 @@ if (settings.background_pattern && BG.find(settings.background_pattern.type)) {
 
 const svgUrl = (svg) => `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 const fileUrl = (path) => `url("${new URL(path, location.href).href}")`;
-/** Herhalende tegels verkleinen in verhouding tot een echt scherm, zodat een preview klopt. */
-const tileScaleFor = (element) => element.clientWidth / Math.max(screen.width, 1);
 const backgroundMode = () => designForm.elements.background_mode.value;
-
-function detectBackgroundMode(s) {
-    if (!s.background_image) return 'color';
-    return s.background_pattern?.file === s.background_image ? 'pattern' : 'image';
-}
 
 /** Is het patroon zoals het nu in de editor staat ook echt de achtergrond van de site? */
 function patternIsActive() {
     const saved = settings.background_pattern;
-    return !!saved && saved.type === bgType && saved.file === settings.background_image && !bgDirty.has(bgType);
+    return settings.background_mode === 'pattern' && saved?.type === bgType && !bgDirty.has(bgType);
 }
 
 /** CSS-waarde voor background-image volgens de gekozen soort (voor beheerscherm en preview). */
-function backgroundImageCss(tileScale) {
+function backgroundImageCss() {
     switch (backgroundMode()) {
         case 'pattern':
-            return patternIsActive() ? fileUrl(settings.background_image) : svgUrl(BG.find(bgType).svg(bgParams[bgType], tileScale));
+            return svgUrl(BG.find(bgType).svg(bgParams[bgType]));
         case 'image':
             return draft.background_image ? fileUrl(draft.background_image) : 'none';
         default:
@@ -868,7 +852,7 @@ function renderBackgroundMode() {
 
 $$('input[name="background_mode"]').forEach(radio => radio.addEventListener('change', () => {
     // Naar "eigen afbeelding" zonder eigen afbeelding: begin met de standaard
-    if (backgroundMode() === 'image' && (!draft.background_image || draft.background_image === settings.background_pattern?.file)) {
+    if (backgroundMode() === 'image' && !draft.background_image) {
         draft.background_image = defaults.background_image;
         $$('.asset-field').forEach(renderAssetField);
     }
@@ -888,11 +872,8 @@ function renderBgVariants() {
         btn.dataset.type = type.id;
         return btn;
     }));
-    // Pas na het plaatsen is de breedte bekend (nodig voor de tegelschaal)
     $$('.bg-variant').forEach((btn) => {
-        const type = BG.find(btn.dataset.type);
-        const thumb = $('.bg-thumb', btn);
-        thumb.style.backgroundImage = svgUrl(type.svg(bgParams[type.id], tileScaleFor(thumb)));
+        $('.bg-thumb', btn).style.backgroundImage = svgUrl(BG.find(btn.dataset.type).svg(bgParams[btn.dataset.type]));
     });
 }
 
@@ -916,10 +897,10 @@ function renderBgPreview() {
     const preview = $('#bg-preview');
     const pattern = backgroundMode() === 'pattern';
     preview.style.backgroundColor = pattern ? BG.find(bgType).base(bgParams[bgType]) : designForm.elements['colors.background'].value;
-    preview.style.backgroundImage = backgroundImageCss(tileScaleFor(preview));
+    preview.style.backgroundImage = backgroundImageCss();
     if (pattern) {
         const thumb = $(`.bg-variant[data-type="${bgType}"] .bg-thumb`);
-        if (thumb) thumb.style.backgroundImage = svgUrl(BG.find(bgType).svg(bgParams[bgType], tileScaleFor(thumb)));
+        if (thumb) thumb.style.backgroundImage = svgUrl(BG.find(bgType).svg(bgParams[bgType]));
         renderBgState();
     }
 }
