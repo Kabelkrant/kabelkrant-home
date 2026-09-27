@@ -201,11 +201,15 @@ function attachRowDnD(li, row, node, siblingsArray) {
         // dragstart bubbelt: zonder stopPropagation() overschrijft elke voorouder-categorie draggedId.
         e.stopPropagation();
         draggedId = node.id;
-        document.body.classList.add('dragging');
-        li.classList.add('dragging');
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', node.id);
         e.dataTransfer.setDragImage(row, 10, 10);
+        // Lay-out pas ná dragstart wijzigen: verspringt die tijdens dragstart, dan breekt Chrome de drag direct af.
+        setTimeout(() => {
+            if (draggedId !== node.id) return;
+            document.body.classList.add('dragging');
+            li.classList.add('dragging');
+        }, 0);
     });
     li.addEventListener('dragover', (e) => {
         e.stopPropagation();
