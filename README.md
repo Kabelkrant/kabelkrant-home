@@ -10,16 +10,17 @@ views/      templates
 public/     webroot: index.php (enige toegangspunt), assets/, branding/, icons/
 ```
 
-Buiten de repository (bewust, want niet voor git of de webserver bedoeld):
+Buiten de repository, in de map erboven (bewust, want niet voor git of de webserver bedoeld).
+De paden zijn relatief aan de projectmap, dus ze verhuizen mee als het project verplaatst wordt:
 
-- `~/.env` met `SECRET_KEY`, optioneel `PAGE_PASSWORD` (beginwachtwoord), `REMEMBER_DAYS` en `DATA_DIR`
-- `~/data/` met `bookmarks.json`, `settings.json` en `auth.json` (wachtwoord-hash)
+- `../.env` met `SECRET_KEY`, optioneel `PAGE_PASSWORD` (beginwachtwoord), `REMEMBER_DAYS` en `DATA_DIR` (ander pad voor de datamap)
+- `../data/` met `bookmarks.json`, `settings.json` en `auth.json` (wachtwoord-hash)
 
 ## Installatie
 
 1. Laat de webserver `public/` serveren en alle onbekende paden naar `public/index.php` sturen.
-2. Maak `~/.env` aan met minstens `SECRET_KEY` en `PAGE_PASSWORD`.
-3. Zorg dat PHP mag schrijven in `~/data/`, `public/icons/` en `public/branding/`.
+2. Maak `../.env` aan met minstens `SECRET_KEY` en `PAGE_PASSWORD`.
+3. Zorg dat PHP mag schrijven in `../data/`, `public/icons/` en `public/branding/`.
 
 Beheer staat op `/?p=admin`: bookmarks, icons, vormgeving (achtergrond en kleuren) en instellingen.
 

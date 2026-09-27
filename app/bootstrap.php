@@ -40,5 +40,5 @@ function load_env_file(string $path): void
     }
 }
 
-// Geheimen staan buiten de repository in ~/.env, zodat ze niet in git belanden.
+// Geheimen staan in ../.env (de map boven het project), buiten de repository, zodat ze niet in git belanden.
 load_env_file(dirname(APP_ROOT) . '/.env');
