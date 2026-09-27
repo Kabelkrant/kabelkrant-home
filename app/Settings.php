@@ -21,7 +21,7 @@ final readonly class Settings
         'logo'             => 'branding/dino.svg',
         'favicon'          => '',            // leeg = logo gebruiken
         'background_image' => 'branding/background-waves.svg', // leeg = alleen kleur
-        'logo_animation'   => true,          // springen + geluid bij klikken op het logo
+        'logo_animation'   => false,         // springen + geluid bij klikken op het logo
         'background_pattern' => null,        // laatste instellingen van de achtergrond-editor
         'colors' => [
             'background' => '#c4e2d8',
