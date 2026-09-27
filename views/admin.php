@@ -212,6 +212,23 @@ use App\View;
         <a class="back" href="./" target="_blank">Bekijk site ↗</a>
       </div>
     </div>
+
+    <div class="design-form update-panel">
+      <fieldset>
+        <legend>Software bijwerken</legend>
+        <dl class="update-info">
+          <dt>Geïnstalleerd</dt><dd id="update-installed">–</dd>
+          <dt>Nieuwste versie</dt><dd id="update-latest">–</dd>
+          <dt>Methode</dt><dd id="update-mode">–</dd>
+        </dl>
+        <p class="hint">Haalt de nieuwste code op van GitHub. Bookmarks, instellingen, wachtwoord en geüploade afbeeldingen blijven behouden. Zonder git wordt de vorige versie eerst als backup bewaard in <code>../data/backups/</code>.</p>
+        <div class="form-actions">
+          <button type="button" id="update-check">Controleren</button>
+          <button type="button" class="primary" id="update-run" disabled>Bijwerken</button>
+        </div>
+        <pre id="update-log" class="update-log" hidden></pre>
+      </fieldset>
+    </div>
   </section>
 </div>
 

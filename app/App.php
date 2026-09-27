@@ -15,6 +15,7 @@ final class App
     private readonly Bookmarks $bookmarks;
     private readonly Settings $settings;
     private readonly Media $media;
+    private readonly Updater $updater;
 
     public function __construct(private readonly Config $config)
     {
@@ -23,6 +24,7 @@ final class App
         $this->bookmarks = new Bookmarks($store);
         $this->settings  = new Settings($store);
         $this->media     = new Media($config);
+        $this->updater   = new Updater($config, $store);
     }
 
     public function run(): void
@@ -113,6 +115,8 @@ final class App
                 ['POST', 'settings.save']  => $this->saveSettings(),
                 ['POST', 'password.change'] => $this->changePassword(),
                 ['POST', 'background.save'] => $this->saveBackground(),
+                ['GET', 'update.status']   => $this->updater->status(),
+                ['POST', 'update.run']     => $this->updater->run(),
                 default => $this->json(['ok' => false, 'error' => 'Onbekende actie.'], 404),
             };
         } catch (InvalidArgumentException | JsonException $e) {

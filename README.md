@@ -13,7 +13,7 @@ public/     webroot: index.php (enige toegangspunt), assets/, branding/, icons/
 Buiten de repository, in de map erboven (bewust, want niet voor git of de webserver bedoeld).
 De paden zijn relatief aan de projectmap, dus ze verhuizen mee als het project verplaatst wordt:
 
-- `../.env` met `SECRET_KEY`, optioneel `PAGE_PASSWORD` (beginwachtwoord), `REMEMBER_DAYS` en `DATA_DIR` (ander pad voor de datamap)
+- `../.env` met `SECRET_KEY`, optioneel `PAGE_PASSWORD` (beginwachtwoord), `REMEMBER_DAYS` `DATA_DIR` (ander pad voor de datamap) en `UPDATE_REPO`/`UPDATE_BRANCH` (bron voor bijwerken, standaard `Kabelkrant/kabelkrant-home` en `main`)
 - `../data/` met `bookmarks.json`, `settings.json` en `auth.json` (wachtwoord-hash)
 
 ## Installatie
@@ -23,6 +23,10 @@ De paden zijn relatief aan de projectmap, dus ze verhuizen mee als het project v
 3. Zorg dat PHP mag schrijven in `../data/`, `public/icons/` en `public/branding/`.
 
 Beheer staat op `/?p=admin`: bookmarks, icons, vormgeving (achtergrond en kleuren) en instellingen.
+
+## Bijwerken
+
+Onder Instellingen → Software bijwerken haalt de site de nieuwste code van GitHub op. Is de installatie een git-clone, dan gebeurt dat met `git pull --ff-only`. Anders wordt de zip gedownload en over de projectmap uitgepakt, met eerst een backup van de vorige versie in `../data/backups/` (de laatste drie blijven bewaard). `../.env`, `../data/` en geüploade afbeeldingen blijven altijd ongemoeid.
 
 ## Naamsvermelding
 

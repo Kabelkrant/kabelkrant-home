@@ -15,6 +15,9 @@ final readonly class Config
         /** Map met de JSON-data; bewust buiten de repository en de webroot. */
         public string $dataDir,
         public string $publicDir,
+        /** GitHub-repository (eigenaar/naam) en branch waarmee "Bijwerken" de code ophaalt. */
+        public string $updateRepo,
+        public string $updateBranch,
     ) {}
 
     public static function fromEnvironment(): self
@@ -33,6 +36,8 @@ final readonly class Config
             rememberDays: (int) (getenv('REMEMBER_DAYS') ?: 30),
             dataDir: rtrim(getenv('DATA_DIR') ?: dirname(APP_ROOT) . '/data', '/'),
             publicDir: PUBLIC_ROOT,
+            updateRepo: getenv('UPDATE_REPO') ?: 'Kabelkrant/kabelkrant-home',
+            updateBranch: getenv('UPDATE_BRANCH') ?: 'main',
         );
     }
 

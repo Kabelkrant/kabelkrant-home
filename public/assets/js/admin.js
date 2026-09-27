@@ -61,6 +61,7 @@ function showTab(name) {
     TABS.forEach(tab => { $('#tab-' + tab).hidden = tab !== name; });
     if (name === 'icons') renderIconManager();
     if (name === 'design') renderBackgroundMode();
+    if (name === 'settings' && !updateChecked) checkUpdate();
 }
 
 $$('.tabs [data-tab]').forEach(btn => btn.addEventListener('click', () => {
@@ -750,6 +751,54 @@ passwordForm.addEventListener('submit', async (e) => {
         setStatus('Wachtwoord gewijzigd', { autoHide: true });
     } catch (err) {
         setStatus('Wijzigen mislukt: ' + err.message, { error: true });
+    }
+});
+
+/* Software bijwerken */
+
+let updateChecked = false;
+const updateRun = $('#update-run');
+const updateLog = $('#update-log');
+const shortSha = (sha) => sha ? sha.slice(0, 7) : 'onbekend';
+const formatDate = (iso) => iso ? new Date(iso).toLocaleString('nl-NL', { dateStyle: 'medium', timeStyle: 'short' }) : '';
+
+async function checkUpdate() {
+    updateChecked = true;
+    updateRun.disabled = true;
+    $('#update-latest').textContent = 'controleren…';
+    try {
+        const s = await api('update.status');
+        $('#update-installed').textContent = shortSha(s.installed) + (s.current ? ' (actueel)' : '');
+        $('#update-latest').textContent = `${shortSha(s.latest.sha)} · ${formatDate(s.latest.date)} · ${s.latest.message}`;
+        $('#update-mode').textContent = s.mode === 'git'
+            ? 'git pull (deze installatie is een git-clone)'
+            : `download van github.com/${s.repo} (${s.branch})`;
+        updateRun.disabled = s.current || !s.writable;
+        updateRun.textContent = s.current ? 'Al bijgewerkt' : 'Bijwerken';
+        if (!s.writable) setStatus('PHP mag de projectmap niet overschrijven (schrijfrechten).', { error: true });
+    } catch (err) {
+        $('#update-latest').textContent = 'onbekend';
+        setStatus('Controleren mislukt: ' + err.message, { error: true });
+    }
+}
+
+$('#update-check').addEventListener('click', checkUpdate);
+
+updateRun.addEventListener('click', async () => {
+    if (!confirm('De code van deze site bijwerken naar de nieuwste versie van GitHub?')) return;
+    updateRun.disabled = true;
+    setStatus('Bijwerken…');
+    try {
+        const data = await api('update.run', { json: {} });
+        updateLog.textContent = data.log;
+        updateLog.hidden = false;
+        setStatus('Bijgewerkt naar ' + shortSha(data.sha) + '; pagina wordt herladen…');
+        setTimeout(() => location.reload(), 2500);
+    } catch (err) {
+        updateLog.textContent = err.message;
+        updateLog.hidden = false;
+        setStatus('Bijwerken mislukt', { error: true });
+        updateRun.disabled = false;
     }
 });
 
