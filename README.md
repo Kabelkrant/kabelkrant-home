@@ -22,7 +22,7 @@ De paden zijn relatief aan de projectmap, dus ze verhuizen mee als het project v
 2. Maak `../.env` aan met minstens `SECRET_KEY` en `PAGE_PASSWORD`.
 3. Zorg dat PHP mag schrijven in `../data/`, `public/icons/` en `public/branding/`.
 
-Beheer staat op `/?p=admin`: bookmarks, icons, vormgeving (achtergrond en kleuren) en instellingen.
+Beheer staat op `/?p=admin`: bookmarks, icons, vormgeving (achtergrond en kleuren), instellingen en versie.
 
 ## Bijwerken
 
