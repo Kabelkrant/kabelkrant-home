@@ -187,8 +187,9 @@
   text-decoration: none;
 }
 
-/* Losse links in de root hebben geen pijltje; extra inspringing lijnt het icoon uit */
-.bookmark-column > a { padding-left: calc(var(--spacing-s) + 1rem + var(--spacing-s)); }
+/* Losse links in de root hebben geen pijltje; extra inspringing lijnt het icoon uit.
+   #bookmarks erbij, anders wint de padding van "#bookmarks a" hierboven. */
+#bookmarks .bookmark-column > a { padding-left: calc(var(--spacing-s) + 1rem + var(--spacing-s)); }
 
 #bookmarks summary:hover,
 #bookmarks summary:focus-visible,
