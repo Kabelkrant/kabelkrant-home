@@ -26,7 +26,7 @@ Beheer staat op `/?p=admin`: bookmarks, icons, vormgeving (achtergrond en kleure
 
 ## Bijwerken
 
-Op het tabblad Versie haalt de site de nieuwste code van GitHub op. Is de installatie een git-clone, dan gebeurt dat met `git pull --ff-only`. Anders wordt de zip gedownload en over de projectmap uitgepakt, met eerst een backup van de vorige versie in `../data/backups/` (de laatste drie blijven bewaard). `../.env`, `../data/` en geüploade afbeeldingen blijven altijd ongemoeid. Iconen in `public/icons/` gelden bij de zip-methode als gebruikersdata: bestaande iconen worden nooit overschreven of verwijderd, alleen nieuwe iconen uit de repository komen erbij. Bij de git-methode verwijdert `git pull` wel iconen die uit de repository zijn gehaald.
+Op het tabblad Versie staat het buildnummer: het aantal commits op GitHub, dus oplopend bij elke wijziging. Daar haalt de site ook de nieuwste code van GitHub op. Is de installatie een git-clone, dan gebeurt dat met `git pull --ff-only`. Anders wordt de zip gedownload en over de projectmap uitgepakt, met eerst een backup van de vorige versie in `../data/backups/` (de laatste drie blijven bewaard). `../.env`, `../data/` en geüploade afbeeldingen blijven altijd ongemoeid. Iconen in `public/icons/` gelden bij de zip-methode als gebruikersdata: bestaande iconen worden nooit overschreven of verwijderd, alleen nieuwe iconen uit de repository komen erbij. Bij de git-methode verwijdert `git pull` wel iconen die uit de repository zijn gehaald.
 
 ## Naamsvermelding
 

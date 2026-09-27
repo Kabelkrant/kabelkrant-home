@@ -764,6 +764,7 @@ let updateChecked = false;
 const updateRun = $('#update-run');
 const updateLog = $('#update-log');
 const shortSha = (sha) => sha ? sha.slice(0, 7) : 'onbekend';
+const version = (build, sha) => build ? `build ${build} (${shortSha(sha)})` : shortSha(sha);
 const formatDate = (iso) => iso ? new Date(iso).toLocaleString('nl-NL', { dateStyle: 'medium', timeStyle: 'short' }) : '';
 
 async function checkUpdate() {
@@ -772,8 +773,8 @@ async function checkUpdate() {
     $('#update-latest').textContent = 'controleren…';
     try {
         const s = await api('update.status');
-        $('#update-installed').textContent = shortSha(s.installed) + (s.current ? ' (actueel)' : '');
-        $('#update-latest').textContent = `${shortSha(s.latest.sha)} · ${formatDate(s.latest.date)} · ${s.latest.message}`;
+        $('#update-installed').textContent = version(s.build, s.installed) + (s.current ? ' (actueel)' : '');
+        $('#update-latest').textContent = `${version(s.latest.build, s.latest.sha)} · ${formatDate(s.latest.date)} · ${s.latest.message}`;
         $('#update-mode').textContent = s.mode === 'git'
             ? 'git pull (deze installatie is een git-clone)'
             : `download van github.com/${s.repo} (${s.branch})`;

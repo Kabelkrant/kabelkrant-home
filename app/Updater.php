@@ -20,6 +20,8 @@ use ZipArchive;
 final readonly class Updater
 {
     private const string DOCUMENT = 'update';
+    /** Buildnummers per commit; een commit houdt altijd hetzelfde nummer, dus ophalen hoeft maar één keer. */
+    private const string BUILDS_DOCUMENT = 'builds';
     private const int KEEP_BACKUPS = 3;
     /** Moeten in de download zitten; anders is het geen geldige versie van deze app. */
     private const array REQUIRED_FILES = ['public/index.php', 'app/bootstrap.php', 'app/App.php'];
@@ -35,7 +37,8 @@ final readonly class Updater
             'repo'      => $this->config->updateRepo,
             'branch'    => $this->config->updateBranch,
             'installed' => $installed,
-            'latest'    => $latest,
+            'build'     => $installed === null ? null : $this->buildNumber($installed),
+            'latest'    => $latest + ['build' => $this->buildNumber($latest['sha'])],
             'current'   => $installed !== null && $installed === $latest['sha'],
             'writable'  => is_writable(APP_ROOT) && is_writable(APP_ROOT . '/app') && is_writable(PUBLIC_ROOT),
         ];
@@ -282,9 +285,34 @@ final readonly class Updater
         ];
     }
 
-    private function http(string $url, array $headers = []): string
+    /**
+     * Oplopend buildnummer: het aantal commits tot en met deze commit.
+     * GitHub geeft dat niet direct; met één commit per pagina is het nummer van de laatste pagina het totaal.
+     * Null als GitHub de commit niet kent (bijv. een lokale, nog niet gepushte commit).
+     */
+    private function buildNumber(string $sha): ?int
+    {
+        $cache = $this->store->read(self::BUILDS_DOCUMENT, []);
+        if (is_int($cache[$sha] ?? null)) {
+            return $cache[$sha];
+        }
+        try {
+            $body = $this->http("https://api.github.com/repos/{$this->config->updateRepo}/commits?per_page=1&sha={$sha}", ['Accept: application/vnd.github+json'], $responseHeaders);
+        } catch (RuntimeException) {
+            return null;
+        }
+        $link = implode(',', preg_grep('/^link:/i', $responseHeaders));
+        $build = preg_match('/[?&]page=(\d+)>; rel="last"/', $link, $m) ? (int) $m[1] : count((array) json_decode($body, true));
+        if ($build > 0) {
+            $this->store->write(self::BUILDS_DOCUMENT, [$sha => $build] + (is_array($cache) ? $cache : []));
+        }
+        return $build ?: null;
+    }
+
+    private function http(string $url, array $headers = [], ?array &$responseHeaders = null): string
     {
         $headers[] = 'User-Agent: kabelkrant-home-updater';
+        $responseHeaders = [];
         if (function_exists('curl_init')) {
             $ch = curl_init($url);
             curl_setopt_array($ch, [
@@ -293,6 +321,10 @@ final readonly class Updater
                 CURLOPT_CONNECTTIMEOUT => 10,
                 CURLOPT_TIMEOUT        => 120,
                 CURLOPT_HTTPHEADER     => $headers,
+                CURLOPT_HEADERFUNCTION => static function ($ch, string $line) use (&$responseHeaders): int {
+                    $responseHeaders[] = trim($line);
+                    return strlen($line);
+                },
             ]);
             $body = curl_exec($ch);
             $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
@@ -300,6 +332,7 @@ final readonly class Updater
         } else {
             $context = stream_context_create(['http' => ['header' => implode("\r\n", $headers), 'timeout' => 120, 'ignore_errors' => true]]);
             $body = @file_get_contents($url, false, $context);
+            $responseHeaders = $http_response_header ?? [];
             $status = (int) (preg_match('#^HTTP/\S+ (\d{3})#', $http_response_header[0] ?? '', $m) ? $m[1] : 0);
             $error = 'geen verbinding';
         }
